@@ -3,31 +3,31 @@ const mongoose = require("mongoose");
 const paymentSchema = new mongoose.Schema({
   date: {
     type: String,
-    required: true,
+    required: [true, "Please provide a date"],
   },
   name: {
     type: String,
-    required: true,
+    required: [true, "Please provide a name"],
   },
   age: {
     type: String,
-    required: true,
+    required: [true, "Please provide your age"],
   },
   gender: {
     type: String,
-    required: true,
+    required: [true, "Please provide your gender"],
   },
   noOfGuests: {
     type: Number,
-    required: true,
+    required: [true, "Please provide the number of guests"],
   },
   phoneNumber: {
     type: String,
-    required: true,
+    required: [true, "Please provide your phone number"],
   },
   email: {
     type: String,
-    required: true,
+    required: [true, "Please provide your email"],
   },
   reservation: {
     type: mongoose.Schema.Types.ObjectId,
@@ -36,7 +36,7 @@ const paymentSchema = new mongoose.Schema({
   },
   amount: {
     type: Number,
-    required: true,
+    required: [true, "Please provide an amount"],
   },
   status: {
     type: String,

@@ -4,6 +4,7 @@ const { v4: uuidv4 } = require("uuid");
 const catchAsync = require("../utils/catchAsync");
 const Reservation = require("../models/reservationModel");
 const Payment = require("../models/paymentModel");
+const Booking = require("../models/bookingModel");
 const AppError = require("../utils/appError");
 
 exports.getAllUsersPayments = catchAsync(async (req, res, next) => {
@@ -85,6 +86,8 @@ exports.createPaymentLink = catchAsync(async (req, res, next) => {
     // Fetch Reservation details from the database based on Reservation ID
     const reservation = await Reservation.findById(req.params.reservationId);
 
+    const booking = await Booking.find().select("reservationTime date -_id");
+
     // Check if Reservation exists
     if (!reservation) {
       return res.status(404).json({
@@ -152,6 +155,23 @@ exports.createPaymentLink = catchAsync(async (req, res, next) => {
     // const tx_ref = paymentUrl.data.tx_ref;
     // console.log(tx_ref);
 
+    // logic to check if that reservation has been booked
+    const bookingDates = booking.map((item) => item.date.toISOString());
+    const bookingTime = booking.map((item) => item.reservationTime);
+    const reservationDate = new Date(req.body.date).toISOString();
+
+    if (
+      bookingDates.includes(reservationDate) &&
+      bookingTime.includes(reservation.name)
+    ) {
+      return next(
+        new AppError(
+          "This reservation has been booked, please select a different time",
+          400
+        )
+      );
+    }
+
     const newPayment = await Payment.create({
       name: req.body.name,
       email: req.body.email,
@@ -167,7 +187,6 @@ exports.createPaymentLink = catchAsync(async (req, res, next) => {
       paymentId: transaction.id,
       transactionId: tx_ref,
     });
-
     // console.log("response", paymentUrl);
     // console.log("================ Finish Payment Url =====================");
 
@@ -201,27 +220,54 @@ async function verifyTransaction(id) {
 
 exports.flutterCallback = catchAsync(async (req, res) => {
   try {
-    // console.log("request headers", req.headers);
-    // console.log("request body", req.body);
-    // console.log("request query", req.query);
-
+    // Verify the transaction using the transaction_id from Flutterwave
     const result = await verifyTransaction(req.query.transaction_id);
-    // console.log(req.query.paymentId);
 
-    await Payment.findOneAndUpdate(
+    // Find the payment by transactionId
+    const payment = await Payment.findOneAndUpdate(
       { transactionId: req.query.tx_ref },
       {
         status: "confirmed",
         paymentStatus: "active",
-      }
+      },
+      { new: true }
     );
+
+    if (!payment) {
+      return res.status(404).json({
+        message: "Payment not found",
+      });
+    }
+
+    // Fetch the reservation details from the database using the reservation ID from the payment
+    const reservation = await Reservation.findById(payment.reservation);
+    if (!reservation) {
+      return res.status(404).json({
+        message: "Reservation not found",
+      });
+    }
+
+    // Create a new booking using the information from the payment and reservation
+    const newBooking = await Booking.create({
+      userName: payment.name,
+      date: payment.date, // Ensure date is in ISO format if needed
+      price: payment.amount,
+      reservationTime: reservation.name,
+    });
 
     return res.status(200).json({
       message: "success",
-      data: result,
+      data: {
+        payment: result,
+        booking: newBooking,
+      },
     });
   } catch (error) {
     console.log("error", error);
+    return res.status(500).json({
+      message: "An error occurred",
+      error: error.message,
+    });
   }
 });
 

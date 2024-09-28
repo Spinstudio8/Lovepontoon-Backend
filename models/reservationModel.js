@@ -3,36 +3,39 @@ const mongoose = require("mongoose");
 const reservationSchema = new mongoose.Schema({
   name: {
     type: String,
+    enum: {
+      values: [
+        "Morning Pool Experience",
+        "Afternoon Pool Experience",
+        "Night Pool Experience",
+        "All-Day Pool Experience",
+      ],
+      message:
+        "Name must be either Morning Pool Experience, Afternoon Pool Experience, Night Pool Experience, All-Day Pool Experience ",
+    },
     required: [true, "Please provide the Reservation name"],
   },
   price: {
     type: Number,
     required: [true, "Please provide the price"],
   },
+  // time: {
+  //   type: String,
+  //   enum: {
+  //     values: ["morning", "afternoon", "evening", "all_day"],
+  //     message: "Time must be either morning, afternoon, evening, or all_day",
+  //   },
+  //   required: [true, "Please provide the reservation time"],
+  // },
   time: {
     type: String,
-    enum: {
-      values: ["morning", "afternoon", "evening", "all_day"],
-      message: "Time must be either morning, afternoon, evening, or all_day",
-    },
     required: [true, "Please provide the reservation time"],
-  },
-  clock: {
-    type: String,
-    required: [true, "Please provide the reservation time"],
-  },
-  date: {
-    type: Date,
-    required: [true, "Please provide the reservation date"],
   },
   photo: {
     type: String,
     default: "default.jpg",
   },
 });
-
-// Optional: To prevent duplicate reservations based on date and time
-reservationSchema.index({ date: 1, time: 1 }, { unique: true });
 
 const Reservation = mongoose.model("Reservation", reservationSchema);
 
