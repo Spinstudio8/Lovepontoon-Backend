@@ -8,25 +8,79 @@ const Booking = require("../models/bookingModel");
 const AppError = require("../utils/appError");
 
 exports.getAllUsersPayments = catchAsync(async (req, res, next) => {
-  const payments = await Payment.find();
-  for (const payment of payments) {
-    // we have to make an instance to check the ticket has expired
-    // // Step 3: Check if the payment has expired using the hasExpired instance method
-    // if (payment.hasExpired()) {
-    //   // Step 4: Update the status of expired payments
-    //   payment.status = "expired";
-    //   // Save the updated payment
-    //   await payment.save();
-    // }
+  const { search, state, sort, page, limit } = req.query;
+
+  // Search and filtering
+  const queryObj = {};
+
+  if (search) {
+    queryObj.$or = [
+      { fname: { $regex: search, $options: "i" } },
+      { lname: { $regex: search, $options: "i" } },
+      { memberId: { $regex: search, $options: "i" } },
+      { email: { $regex: search, $options: "i" } },
+    ];
   }
+
+  if (state) {
+    queryObj.state = state;
+  }
+
+  let result = Payment.find(queryObj);
+
+  // Sorting
+  if (sort === "latest") {
+    result = result.sort("-createdAt");
+  } else if (sort === "oldest") {
+    result = result.sort("createdAt");
+  } else if (sort === "a-z") {
+    result = result.sort("fname");
+  } else if (sort === "z-a") {
+    result = result.sort("-fname");
+  }
+
+  // Pagination
+  const pageNumber = Number(page) || 1;
+  const limitNumber = Number(limit) || 10;
+  const skip = (pageNumber - 1) * limitNumber;
+
+  result = result.skip(skip).limit(limitNumber);
+
+  const payments = await result;
+  const totalPayments = await Payment.countDocuments(queryObj);
+  const numOfPages = Math.ceil(totalPayments / limitNumber);
 
   res.status(200).json({
     status: "success",
     results: payments.length,
+    totalPayments,
+    numOfPages,
     data: {
       payments,
     },
   });
+});
+
+exports.getTotalRevenue = catchAsync(async (req, res, next) => {
+  const totalAmount = await Payment.aggregate([
+    {
+      $group: {
+        _id: null,
+        totalPrice: { $sum: "$amount" },
+      },
+    },
+  ]);
+
+  // totalAmount will be an array with one object containing the total price
+  if (totalAmount.length > 0) {
+    res.status(200).json({
+      status: "success",
+      results: totalAmount[0].totalPrice,
+    });
+    // console.log(`Total Price: ${totalAmount[0].totalPrice}`);
+  } else {
+    console.log("No payments found.");
+  }
 });
 
 exports.getSingleUserPayment = catchAsync(async (req, res, next) => {
@@ -125,7 +179,6 @@ exports.createPaymentLink = catchAsync(async (req, res, next) => {
     const customer = {
       // id: req.user.id,
       email: req.body.email,
-      // email: "test@example.com",
       phone_number: req.body.phoneNumber,
       name: req.body.name,
     };
@@ -183,6 +236,7 @@ exports.createPaymentLink = catchAsync(async (req, res, next) => {
       reservation: req.params.reservationId,
       amount: totalAmount,
       status: "pending",
+      bookType: reservation.name,
       datePayed: Date.now(),
       paymentId: transaction.id,
       transactionId: tx_ref,
@@ -227,8 +281,7 @@ exports.flutterCallback = catchAsync(async (req, res) => {
     const payment = await Payment.findOneAndUpdate(
       { transactionId: req.query.tx_ref },
       {
-        status: "confirmed",
-        paymentStatus: "active",
+        status: "booked",
       },
       { new: true }
     );

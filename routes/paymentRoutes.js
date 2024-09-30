@@ -19,11 +19,13 @@ router.get(
   paymentController.getSingleUserPayment
 );
 
+router.get("/totalRevenue", paymentController.getTotalRevenue);
+
 // router.use(authController.restrictTo("user"));
 
-router.get("/userPayment", paymentController.getAllPayment)
+router.get("/userPayment", paymentController.getAllPayment);
 
-router.get("/singleUserPayment/:id", paymentController.getSinglePayment)
+router.get("/singleUserPayment/:id", paymentController.getSinglePayment);
 
 // fluterwave
 router.get("/paymentLink/:reservationId", paymentController.createPaymentLink);

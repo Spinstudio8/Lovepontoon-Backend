@@ -41,7 +41,6 @@ exports.signup = catchAsync(async (req, res, next) => {
 
   const newUser = await User.create({
     name: req.body.name,
-    state: req.body.state,
     email: req.body.email,
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
@@ -54,22 +53,22 @@ exports.signup = catchAsync(async (req, res, next) => {
 });
 
 exports.login = catchAsync(async (req, res, next) => {
-  const { memberId, password } = req.body;
+  const { email, password } = req.body;
 
   // 1) check if email and password exist
-  if (!memberId || !password) {
+  if (!email || !password) {
     return next(
-      new AppError("Please provide a valid memberId and password", 400)
+      new AppError("Please provide a valid email and password", 400)
     );
   }
 
   // 2) Check if user exists && password is correct
-  const user = await User.findOne({ memberId }).select("+password");
+  const user = await User.findOne({ email }).select("+password");
   // console.log(user)
 
   // Fixed
   if (!user || !(await user.correctPassword(password, user.password))) {
-    return next(new AppError("Incorrect memberId or password", 401));
+    return next(new AppError("Incorrect email or password", 401));
   }
 
   // 3) if everything is okay, send token to client

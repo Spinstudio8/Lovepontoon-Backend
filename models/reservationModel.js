@@ -19,14 +19,6 @@ const reservationSchema = new mongoose.Schema({
     type: Number,
     required: [true, "Please provide the price"],
   },
-  // time: {
-  //   type: String,
-  //   enum: {
-  //     values: ["morning", "afternoon", "evening", "all_day"],
-  //     message: "Time must be either morning, afternoon, evening, or all_day",
-  //   },
-  //   required: [true, "Please provide the reservation time"],
-  // },
   time: {
     type: String,
     required: [true, "Please provide the reservation time"],

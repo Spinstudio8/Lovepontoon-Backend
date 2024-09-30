@@ -3,29 +3,10 @@ const validator = require("validator");
 const bcrypt = require("bcryptjs");
 
 const userSchema = new mongoose.Schema({
-  fname: {
+  name: {
     type: String,
     required: [true, "Please tell us your first name!"],
     minlength: 3,
-  },
-  mname: {
-    type: String,
-    required: [true, "Please tell us your middle name!"],
-    minlength: 3,
-  },
-  lname: {
-    type: String,
-    required: [true, "Please tell us your last name!"],
-    minlength: 3,
-  },
-  state: {
-    type: String,
-    required: [true, "Please provide your state!"],
-  },
-  memberId: {
-    type: String,
-    unique: true,
-    required: [true, "Please provide your member Id!"],
   },
   password: {
     type: String,
@@ -54,11 +35,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: "default.jpg",
   },
-  maritalStatus: {
-    type: String,
-    enum: ["single", "married", "divorced"],
-    required: [true, "Please provide your marital status!"],
-  },
   phoneNumber: {
     type: String,
     validate: {
@@ -71,38 +47,6 @@ const userSchema = new mongoose.Schema({
     },
     required: true,
   },
-  secondaryPhoneNumber: {
-    type: String,
-    validate: {
-      validator: function (v) {
-        // Regular expression to validate phone number
-        return /\d{11}/.test(v);
-        // return /\d{3}-\d{3}-\d{4}/.test(v);
-      },
-      message: (props) =>
-        `${props.value} is not a valid phone number! Please use format XXX-XXX-XXXX`,
-    },
-  },
-  memberSince: {
-    type: Number,
-    max: new Date().getFullYear(),
-    required: true,
-    default: Date.now,
-  },
-  birthDay: {
-    type: String,
-    required: [true, "Please proved your date of birth"],
-    validate: {
-      validator: function (value) {
-        // Regular expression to validate mm-dd-yyyy format
-        return /^(0[1-9]|1[0-2])-(0[1-9]|1\d|2\d|3[01])-(19|20)\d{2}$/.test(
-          value
-        );
-      },
-      message: "Please provide the date of birth in mm-dd-yyyy format",
-    },
-  },
-
   role: {
     type: String,
     enum: ["user", "admin"],
@@ -130,7 +74,6 @@ userSchema.pre("save", async function (next) {
 
   next();
 });
-
 
 userSchema.methods.correctPassword = async function (
   candidatePassword,

@@ -10,6 +10,8 @@ const cors = require("cors");
 const userRouter = require("./routes/userRoutes");
 const reservationRouter = require("./routes/reservationRoutes");
 const paymentRouter = require("./routes/paymentRoutes");
+const bookingRouter = require("./routes/bookingRoutes");
+
 const globalErrorHandler = require("./controller/errorController");
 const AppError = require("./utils/appError");
 
@@ -31,6 +33,7 @@ app.get("/", (req, res) => {
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/subscription", reservationRouter);
 app.use("/api/v1/payment", paymentRouter);
+app.use("/api/v1/booking", bookingRouter);
 
 // Handling unhandled routes
 // For all http methods
