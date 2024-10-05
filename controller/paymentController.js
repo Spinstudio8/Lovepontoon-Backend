@@ -8,35 +8,52 @@ const Booking = require("../models/bookingModel");
 const AppError = require("../utils/appError");
 
 exports.getAllUsersPayments = catchAsync(async (req, res, next) => {
-  const { search, state, sort, page, limit } = req.query;
+  const { search, state, sort, page, limit, status, timeRange } = req.query;
 
   // Search and filtering
   const queryObj = {};
 
+  // Search by name, email, etc.
   if (search) {
     queryObj.$or = [
       { fname: { $regex: search, $options: "i" } },
       { lname: { $regex: search, $options: "i" } },
-      { memberId: { $regex: search, $options: "i" } },
       { email: { $regex: search, $options: "i" } },
     ];
   }
 
+  // Filter by state if provided
   if (state) {
     queryObj.state = state;
   }
 
+  // Filter by status, defaulting to 'booked'
+  queryObj.status = status || "booked";
+
+  // Time range filter
+  const now = new Date();
+  if (timeRange === "last-24hrs") {
+    queryObj.datePayed = { $gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) };
+  } else if (timeRange === "last-7days") {
+    queryObj.datePayed = { $gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) };
+  } else if (timeRange === "last-30days") {
+    queryObj.datePayed = { $gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) };
+  } else if (timeRange === "last-12months") {
+    queryObj.datePayed = { $gte: new Date(now.setFullYear(now.getFullYear() - 1)) };
+  }
+
+  // Query to get payments based on filters
   let result = Payment.find(queryObj);
 
   // Sorting
   if (sort === "latest") {
-    result = result.sort("-createdAt");
+    result = result.sort("-datePayed"); // Newest first
   } else if (sort === "oldest") {
-    result = result.sort("createdAt");
+    result = result.sort("datePayed"); // Oldest first
   } else if (sort === "a-z") {
-    result = result.sort("fname");
+    result = result.sort("fname"); // Sort by fname A-Z
   } else if (sort === "z-a") {
-    result = result.sort("-fname");
+    result = result.sort("-fname"); // Sort by fname Z-A
   }
 
   // Pagination
@@ -46,20 +63,58 @@ exports.getAllUsersPayments = catchAsync(async (req, res, next) => {
 
   result = result.skip(skip).limit(limitNumber);
 
+  // Execute the query
   const payments = await result;
+
+  // Get total payments count based on query
   const totalPayments = await Payment.countDocuments(queryObj);
+
+  // Calculate total amount for booked payments
+  const totalAmount = payments.reduce((acc, payment) => acc + payment.amount, 0);
+
+  // Get the total number of "booked" payments
+  const totalBooked = await Payment.countDocuments({ ...queryObj, status: 'booked' });
+
+  // Calculate the total number of each bookType with status "booked"
+  const bookedTypesCount = {
+    MorningPoolExperience: await Payment.countDocuments({
+      ...queryObj,
+      bookType: "Morning Pool Experience",
+    }),
+    AfternoonPoolExperience: await Payment.countDocuments({
+      ...queryObj,
+      bookType: "Afternoon Pool Experience",
+    }),
+    NightPoolExperience: await Payment.countDocuments({
+      ...queryObj,
+      bookType: "Night Pool Experience",
+    }),
+    AllDayPoolExperience: await Payment.countDocuments({
+      ...queryObj,
+      bookType: "All-Day Pool Experience",
+    }),
+  };
+
+  // Number of pages for pagination
   const numOfPages = Math.ceil(totalPayments / limitNumber);
 
+  // Send response
   res.status(200).json({
     status: "success",
     results: payments.length,
     totalPayments,
+    totalAmount,
+    totalBooked,
+    bookedTypesCount,
     numOfPages,
     data: {
       payments,
     },
   });
 });
+
+
+
 
 exports.getTotalRevenue = catchAsync(async (req, res, next) => {
   const totalAmount = await Payment.aggregate([

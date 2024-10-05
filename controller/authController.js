@@ -23,7 +23,7 @@ const createSendToken = (user, statusCode, req, res) => {
     secure: req.secure || req.headers["x-forward-proto"] === "https",
   });
 
-  console.log(req.cookie);
+  // console.log(req.cookie);
 
   // Remove password form output
   user.password = undefined;
@@ -38,9 +38,9 @@ const createSendToken = (user, statusCode, req, res) => {
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
-
   const newUser = await User.create({
-    name: req.body.name,
+    fname: req.body.fname,
+    lname: req.body.lname,
     email: req.body.email,
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
@@ -57,9 +57,7 @@ exports.login = catchAsync(async (req, res, next) => {
 
   // 1) check if email and password exist
   if (!email || !password) {
-    return next(
-      new AppError("Please provide a valid email and password", 400)
-    );
+    return next(new AppError("Please provide a valid email and password", 400));
   }
 
   // 2) Check if user exists && password is correct
