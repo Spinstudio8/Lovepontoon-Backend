@@ -6,13 +6,14 @@ const authController = require("../controller/authController");
 
 const router = express.Router();
 
+router.get("/", reservationController.getReservation);
+
+router.get("/:id", reservationController.getReservationById);
+
 router.use(authController.protect, authController.restrictTo("admin"));
 
 router.post("/createReservation", reservationController.createReservation);
 
-router.get("/", reservationController.getReservation);
-
-router.get("/:id", reservationController.getReservationById);
 
 router.patch("/updateReservation/:id", reservationController.updateReservation);
 
