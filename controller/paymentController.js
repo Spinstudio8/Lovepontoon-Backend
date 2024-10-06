@@ -16,8 +16,7 @@ exports.getAllUsersPayments = catchAsync(async (req, res, next) => {
   // Search by name, email, etc.
   if (search) {
     queryObj.$or = [
-      { fname: { $regex: search, $options: "i" } },
-      { lname: { $regex: search, $options: "i" } },
+      { name: { $regex: search, $options: "i" } },
       { email: { $regex: search, $options: "i" } },
     ];
   }
@@ -33,13 +32,21 @@ exports.getAllUsersPayments = catchAsync(async (req, res, next) => {
   // Time range filter
   const now = new Date();
   if (timeRange === "last-24hrs") {
-    queryObj.datePayed = { $gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) };
+    queryObj.datePayed = {
+      $gte: new Date(now.getTime() - 24 * 60 * 60 * 1000),
+    };
   } else if (timeRange === "last-7days") {
-    queryObj.datePayed = { $gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) };
+    queryObj.datePayed = {
+      $gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+    };
   } else if (timeRange === "last-30days") {
-    queryObj.datePayed = { $gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) };
+    queryObj.datePayed = {
+      $gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
+    };
   } else if (timeRange === "last-12months") {
-    queryObj.datePayed = { $gte: new Date(now.setFullYear(now.getFullYear() - 1)) };
+    queryObj.datePayed = {
+      $gte: new Date(now.setFullYear(now.getFullYear() - 1)),
+    };
   }
 
   // Query to get payments based on filters
@@ -70,10 +77,16 @@ exports.getAllUsersPayments = catchAsync(async (req, res, next) => {
   const totalPayments = await Payment.countDocuments(queryObj);
 
   // Calculate total amount for booked payments
-  const totalAmount = payments.reduce((acc, payment) => acc + payment.amount, 0);
+  const totalAmount = payments.reduce(
+    (acc, payment) => acc + payment.amount,
+    0
+  );
 
   // Get the total number of "booked" payments
-  const totalBooked = await Payment.countDocuments({ ...queryObj, status: 'booked' });
+  const totalBooked = await Payment.countDocuments({
+    ...queryObj,
+    status: "booked",
+  });
 
   // Calculate the total number of each bookType with status "booked"
   const bookedTypesCount = {
@@ -113,31 +126,6 @@ exports.getAllUsersPayments = catchAsync(async (req, res, next) => {
   });
 });
 
-
-
-
-exports.getTotalRevenue = catchAsync(async (req, res, next) => {
-  const totalAmount = await Payment.aggregate([
-    {
-      $group: {
-        _id: null,
-        totalPrice: { $sum: "$amount" },
-      },
-    },
-  ]);
-
-  // totalAmount will be an array with one object containing the total price
-  if (totalAmount.length > 0) {
-    res.status(200).json({
-      status: "success",
-      results: totalAmount[0].totalPrice,
-    });
-    // console.log(`Total Price: ${totalAmount[0].totalPrice}`);
-  } else {
-    console.log("No payments found.");
-  }
-});
-
 exports.getSingleUserPayment = catchAsync(async (req, res, next) => {
   const payment = await Payment.findById(req.params.id);
 
@@ -148,23 +136,20 @@ exports.getSingleUserPayment = catchAsync(async (req, res, next) => {
   res.status(200).json({ status: "success", data: payment });
 });
 
-exports.getAllPayment = catchAsync(async (req, res, next) => {
-  const payment = await Payment.find({ user: req.user.id });
+exports.deletePayment = catchAsync(async (req, res, next) => {
+  const payment = await Payment.findByIdAndUpdate(
+    req.params.id, // The ID of the payment to update
+    { status: "refunded" }, // Set the status to 'refunded'
+    { new: true, runValidators: true } // Options: return the updated document and run schema validators
+  );
 
-  res
-    .status(200)
-    .json({ status: "success", results: payment.length, data: payment });
-});
-
-exports.getSinglePayment = catchAsync(async (req, res, next) => {
-  const payment = await Payment.findOne({
-    _id: req.params.id,
-    user: req.user.id,
-  });
+  if (!payment) {
+    return next(new AppError("No payment found with that ID", 404));
+  }
 
   res.status(200).json({
     status: "success",
-    data: payment,
+    data: { payment }, // Optional: return the updated payment object if needed
   });
 });
 
@@ -280,6 +265,12 @@ exports.createPaymentLink = catchAsync(async (req, res, next) => {
       );
     }
 
+    const formattedDatePayed = new Intl.DateTimeFormat("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }).format(new Date());
+
     const newPayment = await Payment.create({
       name: req.body.name,
       email: req.body.email,
@@ -292,7 +283,7 @@ exports.createPaymentLink = catchAsync(async (req, res, next) => {
       amount: totalAmount,
       status: "pending",
       bookType: reservation.name,
-      datePayed: Date.now(),
+      datePayed: formattedDatePayed,
       paymentId: transaction.id,
       transactionId: tx_ref,
     });

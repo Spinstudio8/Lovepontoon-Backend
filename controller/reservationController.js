@@ -13,6 +13,17 @@ exports.getReservation = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getReservationById = catchAsync(async (req, res, next) => {
+  const reservation = await Reservation.findById(req.params.id);
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      reservation,
+    },
+  });
+});
+
 exports.createReservation = catchAsync(async (req, res, next) => {
   const { name, price, time, photo } = req.body;
 

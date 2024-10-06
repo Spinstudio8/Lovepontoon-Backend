@@ -4,6 +4,8 @@ const catchAsync = require("./../utils/catchAsync");
 
 const multer = require("multer");
 const sharp = require("sharp");
+const cloudinary = require("cloudinary").v2;
+
 
 // Save to memory(buffer)
 const multerStorage = multer.memoryStorage();
@@ -23,18 +25,29 @@ const upload = multer({
   fileFilter: multerFilter,
 });
 
-exports.uploadUserPhoto = upload.single("file");
+exports.uploadUserPhoto = (req, res, next) => {
+  upload.single("photo");
+  next();
+};
 
 exports.resizeUserPhoto = catchAsync(async (req, res, next) => {
-  if (!req.file) return next();
+  if (!req.files || !req.files.photo) {
+    return next(new AppError("Please upload a photo!", 400));
+  }
 
-  req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
+  // console.log(req.files);
+  // Upload to Cloudinary using the temporary file path
+  const result = await cloudinary.uploader.upload(
+    req.files.photo.tempFilePath,
+    {
+      folder: "users",
+      public_id: `user-${req.user.id}-${Date.now()}`,
+      transformation: [{ width: 500, height: 500, crop: "fill" }], // Resize to 500x500
+    }
+  );
 
-  await sharp(req.file.buffer)
-    .resize(500, 500)
-    .toFormat("jpeg")
-    .jpeg({ quality: 90 })
-    .toFile(`public/img/users/${req.file.filename}`);
+  // Save the Cloudinary URL to the request body
+  req.body.photo = result.secure_url;
 
   next();
 });
@@ -48,21 +61,31 @@ const filterObj = (obj, ...allowedFields) => {
 };
 
 exports.updateMe = catchAsync(async (req, res, next) => {
-  //  1) Create error if user POSTs password data
+  // 1) Create error if user POSTs password data
   if (req.body.password || req.body.passwordConfirm) {
     return next(
       new AppError(
-        "This route is not for password updates. Please use /updateMyPassword",
+        "This route is not for password updates. Please use /updateMyPassword.",
         400
       )
     );
   }
 
-  //  2) Filtered out unwanted field names that are not allowed to be updated
-  const filteredBody = filterObj(req.body, "fname", "lname", "phoneNumber","email");
+  // 2) Filtered out unwanted fields names that are not allowed to be updated
+  const filteredBody = filterObj(
+    req.body,
+    "fname",
+    "email",
+    "lname",
+    "mname",
+    "phoneNumber"
+  );
+  // console.log(req.body.photo);
+  // if (req.files) filteredBody.photo = req.files.photo.name;
+  if (req.body.photo) filteredBody.photo = req.body.photo;
+  // console.log(req.file, req.text);
 
-  //  3) update user document
-
+  // 3) Update user document
   const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
     new: true,
     runValidators: true,

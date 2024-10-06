@@ -11,9 +11,9 @@ const router = express.Router();
 router.post("/createReservation", reservationController.createReservation);
 
 router.get("/", reservationController.getReservation);
-router.patch(
-  "/updateReservation/:id",
-  reservationController.updateReservation
-);
+
+router.get("/:id", reservationController.getReservationById);
+
+router.patch("/updateReservation/:id", reservationController.updateReservation);
 
 module.exports = router;

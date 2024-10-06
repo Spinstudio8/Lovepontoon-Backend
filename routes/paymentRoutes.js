@@ -5,27 +5,26 @@ const authController = require("../controller/authController");
 
 const router = express.Router();
 
-// router.use(authController.protect);
-
 router.get(
   "/payments",
+  // authController.protect,
   // authController.restrictTo("admin"),
   paymentController.getAllUsersPayments
 );
 
 router.get(
   "/singlePayments/:id",
+  // authController.protect,
   // authController.restrictTo("admin"),
   paymentController.getSingleUserPayment
 );
 
-router.get("/totalRevenue", paymentController.getTotalRevenue);
-
-// router.use(authController.restrictTo("user"));
-
-router.get("/userPayment", paymentController.getAllPayment);
-
-router.get("/singleUserPayment/:id", paymentController.getSinglePayment);
+router.patch(
+  "payments/:id", 
+  // authController.protect,
+  // authController.restrictTo("admin"),
+  paymentController.deletePayment
+);
 
 // fluterwave
 router.get("/paymentLink/:reservationId", paymentController.createPaymentLink);
