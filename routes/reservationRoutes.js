@@ -6,7 +6,7 @@ const authController = require("../controller/authController");
 
 const router = express.Router();
 
-// router.use(authController.protect, authController.restrictTo("admin"));
+router.use(authController.protect, authController.restrictTo("admin"));
 
 router.post("/createReservation", reservationController.createReservation);
 

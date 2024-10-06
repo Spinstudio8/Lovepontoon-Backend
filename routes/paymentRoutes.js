@@ -7,22 +7,22 @@ const router = express.Router();
 
 router.get(
   "/payments",
-  // authController.protect,
-  // authController.restrictTo("admin"),
+  authController.protect,
+  authController.restrictTo("admin"),
   paymentController.getAllUsersPayments
 );
 
 router.get(
   "/singlePayments/:id",
-  // authController.protect,
-  // authController.restrictTo("admin"),
+  authController.protect,
+  authController.restrictTo("admin"),
   paymentController.getSingleUserPayment
 );
 
 router.patch(
   "payments/:id", 
-  // authController.protect,
-  // authController.restrictTo("admin"),
+  authController.protect,
+  authController.restrictTo("admin"),
   paymentController.deletePayment
 );
 

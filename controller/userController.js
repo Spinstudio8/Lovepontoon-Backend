@@ -80,10 +80,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     "mname",
     "phoneNumber"
   );
-  // console.log(req.body.photo);
-  // if (req.files) filteredBody.photo = req.files.photo.name;
   if (req.body.photo) filteredBody.photo = req.body.photo;
-  // console.log(req.file, req.text);
 
   // 3) Update user document
   const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {

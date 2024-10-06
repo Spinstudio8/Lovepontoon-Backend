@@ -9,11 +9,6 @@ const router = express.Router();
 
 router.get("/", bookingController.getBooking);
 
-router.get("/morning", bookingController.getTotalMorningBookings);
-router.get("/afternoon", bookingController.getTotalMorningBookings);
-router.get("/night", bookingController.getTotalMorningBookings);
-router.get("/all-day", bookingController.getTotalMorningBookings);
-
 router.delete("/:id", bookingController.deleteBooking);
 
 module.exports = router;

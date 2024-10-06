@@ -22,11 +22,8 @@ router.patch(
 
 router.get(
   "/me",
-
   userController.getMe,
   userController.getUser
 );
-
-router.get("/getAllUsers", authController.restrictTo("admin"),userController.getAllUsers)
 
 module.exports = router;

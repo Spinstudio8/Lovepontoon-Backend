@@ -31,7 +31,12 @@ app.use(morgan("dev"));
 
 app.use(cors());
 app.use(express.static("./public"));
-app.use(fileUpload({ useTempFiles: true }));
+app.use(
+  fileUpload({
+    useTempFiles: true,
+    tempFileDir: "/tmp/",
+  })
+);
 app.use(cookieParser());
 
 // Routes
