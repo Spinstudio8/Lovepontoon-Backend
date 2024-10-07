@@ -17,6 +17,13 @@ const AppError = require("./utils/appError");
 
 const app = express();
 
+const corsOptions = {
+  origin: 'http://localhost:5173',
+  methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true, // If using credentials like cookies
+};
+
 const cloudinary = require("cloudinary").v2;
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -29,8 +36,10 @@ app.use(bodyParser.json());
 // Development logging
 app.use(morgan("dev"));
 
-app.use(cors());
+app.use(cors(corsOptions));
+
 app.use(express.static("./public"));
+
 app.use(
   fileUpload({
     useTempFiles: true,
