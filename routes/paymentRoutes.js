@@ -27,7 +27,7 @@ router.patch(
 );
 
 // fluterwave
-router.get("/paymentLink/:reservationId", paymentController.createPaymentLink);
+router.post("/paymentLink/:reservationId", paymentController.createPaymentLink);
 
 router.get("/flutter-callback", paymentController.flutterCallback);
 
