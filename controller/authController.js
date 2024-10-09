@@ -38,7 +38,7 @@ const signToken = (id) => {
 // };
 
 
-const createSendToken = (user, statusCode, res) => {
+const createSendToken = (user, statusCode, req, res) => {
   const token = signToken(user._id);
   const cookieOptions = {
     expires: new Date(
@@ -95,7 +95,7 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   // 3) if everything is okay, send token to client
-  createSendToken(user, 200, res);
+  createSendToken(user, 200, req, res);
 });
 
 exports.protect = catchAsync(async (req, res, next) => {

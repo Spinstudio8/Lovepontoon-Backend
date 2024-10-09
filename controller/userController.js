@@ -77,7 +77,6 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     "fname",
     "email",
     "lname",
-    "mname",
     "phoneNumber"
   );
   if (req.body.photo) filteredBody.photo = req.body.photo;

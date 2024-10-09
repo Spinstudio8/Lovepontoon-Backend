@@ -16,7 +16,8 @@ const globalErrorHandler = require("./controller/errorController");
 const AppError = require("./utils/appError");
 
 const app = express();
-app.use(cookieParser());
+
+app.use(cors());
 
 const cloudinary = require("cloudinary").v2;
 cloudinary.config({
@@ -26,11 +27,10 @@ cloudinary.config({
 });
 
 app.use(bodyParser.json());
-
+app.use(cookieParser());
 // Development logging
 app.use(morgan("dev"));
 
-app.use(cors());
 
 app.use(express.static("./public"));
 

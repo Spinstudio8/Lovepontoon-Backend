@@ -266,9 +266,9 @@ exports.createPaymentLink = catchAsync(async (req, res, next) => {
     }
 
     const formattedDatePayed = new Intl.DateTimeFormat("en-GB", {
-      day: "2-digit",
-      month: "2-digit",
       year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
     }).format(new Date());
 
     const newPayment = await Payment.create({
