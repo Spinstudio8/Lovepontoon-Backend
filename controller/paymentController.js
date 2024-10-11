@@ -6,6 +6,8 @@ const Reservation = require("../models/reservationModel");
 const Payment = require("../models/paymentModel");
 const Booking = require("../models/bookingModel");
 const AppError = require("../utils/appError");
+const sendEmail = require("./../utils/email");
+const { generateEmailHtml } = require("../utils/ticket");
 
 exports.getAllUsersPayments = catchAsync(async (req, res, next) => {
   const { search, state, sort, page, limit, status, timeRange } = req.query;
@@ -266,9 +268,9 @@ exports.createPaymentLink = catchAsync(async (req, res, next) => {
     }
 
     const formattedDatePayed = new Intl.DateTimeFormat("en-GB", {
-      year: "numeric",
-      month: "2-digit",
       day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
     }).format(new Date());
 
     const newPayment = await Payment.create({
@@ -349,9 +351,45 @@ exports.flutterCallback = catchAsync(async (req, res) => {
     // Create a new booking using the information from the payment and reservation
     const newBooking = await Booking.create({
       userName: payment.name,
-      date: payment.date, // Ensure date is in ISO format if needed
+      date: payment.date,
       price: payment.amount,
       reservationTime: reservation.name,
+      reservationType: reservation.time,
+    });
+
+    //  Send user's email
+    const message = `
+      Hello ${payment.name},
+
+      Your booking has been successfully confirmed. Below are the details:
+
+      Reservation Type: ${reservation.name}
+      Reservation Time: ${reservation.time}
+
+      Booking Name: ${newBooking.userName}
+      
+      Payment Details:
+      - Age: ${payment.age}
+      - Amount Paid: ${payment.amount}
+      - Transaction ID: ${payment.transactionId}
+      - Number of Guests: ${payment.noOfGuests}
+      - Gender: ${payment.gender}
+      - Booking Date: ${payment.date}
+      - User Email: ${payment.email}
+
+      Thank you for booking with us!
+
+      Best regards,
+      Love Pontoon
+    `;
+
+    const emailHtml = generateEmailHtml(reservation, payment, newBooking);
+
+    await sendEmail({
+      email: payment.email,
+      subject: "Booking Confirmation",
+      message,
+      html: emailHtml,
     });
 
     return res.status(200).json({
