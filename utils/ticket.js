@@ -48,7 +48,7 @@ const generateEmailHtml = (reservation, payment, booking) => {
         <div style="margin-top: 20px;">
           <h3>Important Information:</h3>
           <p>Please bring this e-ticket along with a valid ID proof for verification at the entrance.</p>
-          <p>Entry Time: 06:45 am (15 minutes before the event start time).</p>
+          <p>Entry Time: (15 minutes before the event start time).</p>
           <p>No re-entry allowed after exit.</p>
           <p>We look forward to welcoming you and your guests!</p>
           <p>Lovepontoon, OOPL</p>

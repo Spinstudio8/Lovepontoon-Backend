@@ -3,9 +3,7 @@ const User = require("./../models/userModel");
 const catchAsync = require("./../utils/catchAsync");
 
 const multer = require("multer");
-const sharp = require("sharp");
 const cloudinary = require("cloudinary").v2;
-
 
 // Save to memory(buffer)
 const multerStorage = multer.memoryStorage();
@@ -100,9 +98,9 @@ exports.getMe = (req, res, next) => {
 };
 
 exports.getUser = catchAsync(async (req, res, next) => {
-   const user = await User.findById(req.params.id)
+  const user = await User.findById(req.params.id);
 
-   if (!user) {
+  if (!user) {
     return next(new AppError("No user found with that id", 404));
   }
   res.status(200).json({
@@ -113,9 +111,8 @@ exports.getUser = catchAsync(async (req, res, next) => {
   });
 });
 
-
-exports.getAllUsers = catchAsync(async(req,res,next) => {
-  const user = await User.find()
+exports.getAllUsers = catchAsync(async (req, res, next) => {
+  const user = await User.find();
 
   res.status(200).json({
     status: "success",
@@ -124,4 +121,4 @@ exports.getAllUsers = catchAsync(async(req,res,next) => {
       user,
     },
   });
-})
+});

@@ -357,38 +357,13 @@ exports.flutterCallback = catchAsync(async (req, res) => {
       reservationType: reservation.time,
     });
 
-    //  Send user's email
-    const message = `
-      Hello ${payment.name},
-
-      Your booking has been successfully confirmed. Below are the details:
-
-      Reservation Type: ${reservation.name}
-      Reservation Time: ${reservation.time}
-
-      Booking Name: ${newBooking.userName}
-      
-      Payment Details:
-      - Age: ${payment.age}
-      - Amount Paid: ${payment.amount}
-      - Transaction ID: ${payment.transactionId}
-      - Number of Guests: ${payment.noOfGuests}
-      - Gender: ${payment.gender}
-      - Booking Date: ${payment.date}
-      - User Email: ${payment.email}
-
-      Thank you for booking with us!
-
-      Best regards,
-      Love Pontoon
-    `;
+    
 
     const emailHtml = generateEmailHtml(reservation, payment, newBooking);
 
     await sendEmail({
       email: payment.email,
-      subject: "Booking Confirmation",
-      message,
+      subject: "Love-Pontoon Booking Ticket",
       html: emailHtml,
     });
 
