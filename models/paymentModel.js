@@ -44,8 +44,8 @@ const paymentSchema = new mongoose.Schema({
     default: "pending",
   },
   datePayed: {
-    type: Date,
-    default: Date.now,
+    type: String,
+    default: Date.now()
   },
   bookType: {
     type: String,

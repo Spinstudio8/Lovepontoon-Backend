@@ -266,13 +266,7 @@ exports.createPaymentLink = catchAsync(async (req, res, next) => {
         )
       );
     }
-
-    const formattedDatePayed = new Intl.DateTimeFormat("en-GB", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    }).format(new Date());
-
+    
     const newPayment = await Payment.create({
       name: req.body.name,
       email: req.body.email,
@@ -285,7 +279,7 @@ exports.createPaymentLink = catchAsync(async (req, res, next) => {
       amount: totalAmount,
       status: "pending",
       bookType: reservation.name,
-      datePayed: formattedDatePayed,
+      datePayed: Date.now(),
       paymentId: transaction.id,
       transactionId: tx_ref,
     });
@@ -323,7 +317,7 @@ async function verifyTransaction(id) {
 exports.flutterCallback = catchAsync(async (req, res) => {
   try {
     // Verify the transaction using the transaction_id from Flutterwave
-    const result = await verifyTransaction(req.query.transaction_id);
+    // const result = await verifyTransaction(req.query.transaction_id);
 
     // Find the payment by transactionId
     const payment = await Payment.findOneAndUpdate(
@@ -357,8 +351,6 @@ exports.flutterCallback = catchAsync(async (req, res) => {
       reservationType: reservation.time,
     });
 
-    
-
     const emailHtml = generateEmailHtml(reservation, payment, newBooking);
 
     await sendEmail({
@@ -369,10 +361,10 @@ exports.flutterCallback = catchAsync(async (req, res) => {
 
     return res.status(200).json({
       message: "success",
-      data: {
-        payment: result,
-        booking: newBooking,
-      },
+      // data: {
+      //   payment: result,
+      //   booking: newBooking,
+      // },
     });
   } catch (error) {
     console.log("error", error);
